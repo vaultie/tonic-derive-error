@@ -55,12 +55,13 @@ impl ToTokens for GrpcErrorOpts {
 
             quote! {
                 #enum_ident :: #name #fields => {
+                    #[cfg(not(debug_assertions))]
                     if #status == #internal_error {
                         ::tracing::error!(error = %e, "internal server error");
-                        ::tonic::Status::new(#status, "Internal server error.")
-                    } else {
-                        ::tonic::Status::new(#status, e.to_string())
+                        return ::tonic::Status::new(#status, "Internal server error.")
                     }
+
+                    ::tonic::Status::new(#status, e.to_string())
                 }
             }
         });
